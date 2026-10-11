@@ -1,9 +1,11 @@
 ﻿using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic;
+using System.Net.Http.Headers;
 
 namespace JobApplicationTracker.Tests
 {
     [TestClass]
-    public sealed class ApplicationRepositoryOperationTest
+    public sealed class ApplicationRepositoryModifyTest
     {
         private ApplicationRepository appRepo = null!;
 
@@ -55,12 +57,170 @@ namespace JobApplicationTracker.Tests
             List<JobApplication?> actual = appRepo.GetApplication([1]);
             Assert.HasCount(0, actual);
         }
+    }
 
+    [TestClass]
+    public sealed class ApplicationRepositoryQueryTest()
+    {
+
+        private static ApplicationRepository appRepo = null!;
+
+        [ClassInitialize]
+        public static void ClassInit(TestContext testContext)
+        {
+            appRepo = new ApplicationRepository();
+            Assert.IsTrue(appRepo.VerifyFile());
+            appRepo.CreateTable();
+
+            bool retVal = appRepo.AddApplication("product tester", "NuCaloric", "www.Google.com",
+                "Double drinkable cheeseburger", "Add quadruple drinkable cheeseburger",
+                Status.Applied, new DateOnly(2882, 9, 2));
+            retVal = retVal && appRepo.AddApplication("mercenary", "Traxus", "www.Google.com",
+                "Vulcan is cool", "They operate beyond scale",
+                Status.Offer, new DateOnly(2891, 10, 29));
+            retVal = retVal && appRepo.AddApplication("software engineer", "CyberAcme", "www.Google.com",
+                "Requires rampant AI experience", "ONI is irish",
+                Status.Offer, new DateOnly(2893, 6, 12));
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            SqliteConnection.ClearAllPools();
+            string pathToDB = Path.Combine(appRepo.pathToDir, appRepo.dbFileName);
+            System.IO.File.Delete(pathToDB);
+            Console.WriteLine("Deleted " + pathToDB);
+        }
+        
         [TestMethod]
         public void TestRetrievingNonExistantApplication()
         {
-            List<JobApplication?> actual = appRepo.GetApplication([1]);
+            List<JobApplication?> actual = appRepo.GetApplication([4]);
             Assert.HasCount(0, actual);
+        }
+
+        [TestMethod]
+        [DataRow(new long[] {1}, "Nucaloric")]
+        [DataRow(new long[] {}, "Google")]
+        [DataRow(new long[] {2}, "mercenary")]
+        [DataRow(new long[] {2, 3}, "is")]
+        public void TestSearchKeywords(long[] expected, string keyword)
+        {
+            List<long> actual = appRepo.SearchApplications(keyword, null, null, null);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
+        }
+
+        [TestMethod]
+        [DataRow(new long[] {1}, Status.Applied)]
+        [DataRow(new long[] {}, Status.Rejected)]
+        [DataRow(new long[] {2, 3}, Status.Offer)]
+        public void TestSearchStatus(long[] expected, Status jobStatus)
+        {
+            List<long> actual = appRepo.SearchApplications(null, jobStatus, null, null);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
+        }
+
+        [TestMethod]
+        [DataRow(new long[] {1, 2, 3}, 2026, 10, 8)]
+        [DataRow(new long[] {}, 3000, 6, 7)]
+        [DataRow(new long[] {2, 3}, 2891, 10, 29)]
+        public void TestSearchStartDate(long[] expected, int year, int month, int day)
+        {
+            var startDate = new DateOnly(year, month, day);
+            List<long> actual = appRepo.SearchApplications(null, null, startDate, null);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
+        }
+
+        [TestMethod]
+        [DataRow(new long[] {}, 2026, 10, 8)]
+        [DataRow(new long[] {1, 2, 3}, 3000, 6, 7)]
+        [DataRow(new long[] {1, 2}, 2891, 10, 29)]
+        public void TestSearchEndDate(long[] expected, int year, int month, int day)
+        {
+            var endDate = new DateOnly(year, month, day);
+            List<long> actual = appRepo.SearchApplications(null, null, null, endDate);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
+        }
+
+        [TestMethod]
+        [DataRow(new long[] {1, 2, 3}, 2882, 9, 2, 2893, 6, 12)]
+        [DataRow(new long[] {}, 2893, 6, 12, 2882, 9, 2)]
+        [DataRow(new long[] {1, 2}, 2882, 9, 2, 2893, 6, 11)]
+        [DataRow(new long[] {2, 3}, 2891, 9, 2, 2893, 6, 12)]
+        [DataRow(new long[] {2}, 2882, 9, 3, 2893, 6, 11)]
+        public void TestSearchStartAndEndDate(long[] expected, int startYear, int startMonth, int startDay,
+            int endYear, int endMonth, int endDay)
+        {
+            var startDate = new DateOnly(startYear, startMonth, startDay);
+            var endDate = new DateOnly(endYear, endMonth, endDay);
+            List<long> actual = appRepo.SearchApplications(null, null, startDate, endDate);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
+        }
+
+        [TestMethod]
+        [DataRow(new long[] {1}, "Nucaloric", Status.Applied)]
+        [DataRow(new long[] {}, "Nucaloric", Status.Offer)]
+        [DataRow(new long[] {2, 3}, "is", Status.Offer)]
+        public void TestSearchKeywordAndStatus(long[] expected, string keyword, Status jobStatus)
+        {
+            List<long> actual = appRepo.SearchApplications(keyword, jobStatus, null, null);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
+        }
+
+        [TestMethod]
+        public void TestSearchKeywordAndStartDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchKeywordAndEndDate()
+        {
+
+        }
+
+        
+
+        [TestMethod]
+        public void TestSearchStatusAndStartDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchStatusAndEndDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchKeywordAndStatusAndStartDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchKeywordAndStatusAndEndDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchStatusAndStartDateAndEndDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchKeywordAndStartDateAndEndDate()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestSearchKeywordAndStatusAndStartDateAndEndDate()
+        {
+
         }
     }
 
@@ -107,7 +267,6 @@ namespace JobApplicationTracker.Tests
                     && string.Equals(columnType, expectedTypes[index])
                     && columnNotNull == expectedNotNull[index]))
                 {
-                    Console.WriteLine("here1");
                     return false;
                 }
                 index++;

@@ -148,11 +148,51 @@ public class ApplicationRepository
 		return retList;
 	}
 	
-	public List<long> SearchApplications(string? keyword, Status? jobStatus, DateTime? startDate, DateTime? endDate)
+	public List<long> SearchApplications(string? keyword, Status? jobStatus, DateOnly? startDate, DateOnly? endDate)
 	{
-		//TODO: queries the database for bodies of text (company name, searchable text, notes, job title) using keyword
-		//and searches for matches in job status and start/end date. use all nulls to just return the entire id list
-		return [0];
+		string sql = @"SELECT job_id
+					   FROM applications
+					   WHERE ";
+
+		if (keyword != null)
+		{
+			sql = sql + @"(job_title LIKE @keyword
+							OR company_name LIKE @keyword
+							OR searchable_text LIKE @keyword
+							OR extra_notes LIKE @keyword) AND ";
+		}
+		if (jobStatus.HasValue)
+		{
+			sql = sql + "job_status = @job_status AND ";
+		}
+		if (startDate.HasValue) 
+		{
+			sql = sql + "date >= @start_date AND ";
+		}
+		if (endDate.HasValue) 
+		{
+			sql = sql + "date <= @end_date AND ";
+		}
+		sql = sql.Substring(0, sql.Length - 4); 
+		sql = sql + "ORDER BY job_id ASC";
+		using var connection = new SqliteConnection(dataSource);
+		connection.Open();
+
+		using var command = new SqliteCommand(sql, connection);
+
+		command.Parameters.Add("@keyword", SqliteType.Text).Value = "%" + keyword + "%";
+		if (jobStatus.HasValue) command.Parameters.Add("@job_status", SqliteType.Integer).Value = jobStatus.Value;
+		if (startDate.HasValue) command.Parameters.Add("@start_date", SqliteType.Text).Value = startDate.Value.ToString("yyyy-MM-dd");
+		if (endDate.HasValue) command.Parameters.Add("@end_date", SqliteType.Text).Value = endDate.Value.ToString("yyyy-MM-dd");
+
+		using var reader = command.ExecuteReader();
+		var returnIDs = new List<long>();
+
+		while (reader.Read())
+		{
+			returnIDs.Add(reader.GetInt64(0));
+		}
+		return returnIDs;
 	}
 
 }
