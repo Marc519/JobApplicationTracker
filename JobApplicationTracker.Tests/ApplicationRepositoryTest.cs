@@ -75,10 +75,10 @@ namespace JobApplicationTracker.Tests
             bool retVal = appRepo.AddApplication("product tester", "NuCaloric", "www.Google.com",
                 "Double drinkable cheeseburger", "Add quadruple drinkable cheeseburger",
                 Status.Applied, new DateOnly(2882, 9, 2));
-            retVal = retVal && appRepo.AddApplication("mercenary", "Traxus", "www.Google.com",
+            retVal = appRepo.AddApplication("mercenary", "Traxus", "www.Google.com",
                 "Vulcan is cool", "They operate beyond scale",
                 Status.Offer, new DateOnly(2891, 10, 29));
-            retVal = retVal && appRepo.AddApplication("software engineer", "CyberAcme", "www.Google.com",
+            retVal = appRepo.AddApplication("software engineer", "CyberAcme", "www.Google.com",
                 "Requires rampant AI experience", "ONI is irish",
                 Status.Offer, new DateOnly(2893, 6, 12));
         }
@@ -101,6 +101,7 @@ namespace JobApplicationTracker.Tests
 
         [TestMethod]
         [DataRow(new long[] {1}, "Nucaloric")]
+        [DataRow(new long[] {1}, "nu")]
         [DataRow(new long[] {}, "Google")]
         [DataRow(new long[] {2}, "mercenary")]
         [DataRow(new long[] {2, 3}, "is")]
@@ -168,59 +169,47 @@ namespace JobApplicationTracker.Tests
         }
 
         [TestMethod]
-        public void TestSearchKeywordAndStartDate()
+        [DataRow(new long[] {2, 3}, "o", 2891, 10, 29)]
+        [DataRow(new long[] {}, "scrimblo", 2026, 3, 12)]
+        [DataRow(new long[] {2}, "le", 2891, 10, 29)]
+        public void TestSearchKeywordAndStartDate(long[] expected, string keyword, int year, int month, int day)
         {
-
+            DateOnly startDate = new DateOnly(year, month, day);
+            List<long> actual = appRepo.SearchApplications(keyword, null, startDate, null);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
         }
 
         [TestMethod]
-        public void TestSearchKeywordAndEndDate()
+        [DataRow(new long[] {1, 2}, "le", 2891, 10, 29)]
+        [DataRow(new long[] {}, "scrimblo", 3000, 3, 12)]
+        [DataRow(new long[] {2}, "is", 2891, 10, 29)]
+        public void TestSearchKeywordAndEndDate(long[] expected, string keyword, int year, int month, int day)
         {
-
-        }
-
-        
-
-        [TestMethod]
-        public void TestSearchStatusAndStartDate()
-        {
-
+            DateOnly endDate = new DateOnly(year, month, day);
+            List<long> actual = appRepo.SearchApplications(keyword, null, null, endDate);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
         }
 
         [TestMethod]
-        public void TestSearchStatusAndEndDate()
+        [DataRow(new long[] {}, Status.Applied, 2891, 10, 29)]
+        [DataRow(new long[] {3}, Status.Offer, 2893, 6, 12)]
+        [DataRow(new long[] {1}, Status.Applied, 2026, 10, 29)]
+        public void TestSearchStatusAndStartDate(long[] expected, Status status, int year, int month, int day)
         {
-
+            DateOnly startDate = new DateOnly(year, month, day);
+            List<long> actual = appRepo.SearchApplications(null, status, startDate, null);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
         }
 
         [TestMethod]
-        public void TestSearchKeywordAndStatusAndStartDate()
+        [DataRow(new long[] {}, Status.Offer, 2890, 10, 29)]
+        [DataRow(new long[] {2}, Status.Offer, 2891, 10, 29)]
+        [DataRow(new long[] {2, 3}, Status.Offer, 3000, 10, 29)]
+        public void TestSearchStatusAndEndDate(long[] expected, Status status, int year, int month, int day)
         {
-
-        }
-
-        [TestMethod]
-        public void TestSearchKeywordAndStatusAndEndDate()
-        {
-
-        }
-
-        [TestMethod]
-        public void TestSearchStatusAndStartDateAndEndDate()
-        {
-
-        }
-
-        [TestMethod]
-        public void TestSearchKeywordAndStartDateAndEndDate()
-        {
-
-        }
-
-        [TestMethod]
-        public void TestSearchKeywordAndStatusAndStartDateAndEndDate()
-        {
-
+            DateOnly endDate = new DateOnly(year, month, day);
+            List<long> actual = appRepo.SearchApplications(null, status, null, endDate);
+            Assert.AreSequenceEqual(expected, actual, "Returned search results did not match expected");
         }
     }
 
