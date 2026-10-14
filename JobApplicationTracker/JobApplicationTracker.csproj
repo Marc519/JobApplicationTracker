@@ -8,4 +8,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\JobApplicationTracker.Core\JobApplicationTracker.Core.csproj" />
+  </ItemGroup>
+
 </Project>

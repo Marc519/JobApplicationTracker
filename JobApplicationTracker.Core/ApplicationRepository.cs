@@ -102,7 +102,7 @@ public class ApplicationRepository
 	
 	// takes in applicationIDs and returns them in a list
 	// returns applications in ascending order by id
-	public List<JobApplication?> GetApplication(List<long> appIDs)
+	public List<JobApplication> GetApplication(List<long> appIDs)
 	{
 		string sqlTemplate = "SELECT * FROM applications WHERE job_id IN (";
 
@@ -128,7 +128,7 @@ public class ApplicationRepository
 		}
 
 		using SqliteDataReader reader = command.ExecuteReader();
-		var retList = new List<JobApplication?> ();
+		var retList = new List<JobApplication> ();
 
 		while (reader.Read())
 		{
@@ -151,30 +151,43 @@ public class ApplicationRepository
 	public List<long> SearchApplications(string? keyword, Status? jobStatus, DateOnly? startDate, DateOnly? endDate)
 	{
 		string sql = @"SELECT job_id
-					   FROM applications
-					   WHERE ";
+					   FROM applications";
+
+		bool allNull = true;
+
+		string extra = "";
 
 		if (keyword != null)
 		{
-			sql = sql + @"(job_title LIKE @keyword
+			extra = extra + @"(job_title LIKE @keyword
 							OR company_name LIKE @keyword
 							OR searchable_text LIKE @keyword
 							OR extra_notes LIKE @keyword) AND ";
+			allNull = false;
 		}
 		if (jobStatus.HasValue)
 		{
-			sql = sql + "job_status = @job_status AND ";
+			extra = extra + "job_status = @job_status AND ";
+			allNull = false;
 		}
 		if (startDate.HasValue) 
 		{
-			sql = sql + "date >= @start_date AND ";
+			extra = extra + "date >= @start_date AND ";
+			allNull = false;
 		}
 		if (endDate.HasValue) 
 		{
-			sql = sql + "date <= @end_date AND ";
+			extra = extra + "date <= @end_date AND ";
+			allNull = false;
 		}
-		sql = sql.Substring(0, sql.Length - 4); 
-		sql = sql + "ORDER BY job_id ASC";
+
+		if (!allNull)
+		{
+			sql = sql + " WHERE " + extra;
+            sql = sql.Substring(0, sql.Length - 4); 
+		}
+        sql = sql + " ORDER BY job_id ASC ";
+
 		using var connection = new SqliteConnection(dataSource);
 		connection.Open();
 

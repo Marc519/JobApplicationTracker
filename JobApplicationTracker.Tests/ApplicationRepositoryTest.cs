@@ -39,7 +39,7 @@ namespace JobApplicationTracker.Tests
 
             Assert.IsTrue(retVal);
 
-            List<JobApplication?> actual = appRepo.GetApplication([1]);
+            List<JobApplication> actual = appRepo.GetApplication([1]);
 
             Assert.HasCount(1, actual);
             Assert.IsTrue(JobApplication.AreEqual(actual[0], expected));
@@ -54,7 +54,7 @@ namespace JobApplicationTracker.Tests
 
             retVal = appRepo.RemoveApplication(1);
 
-            List<JobApplication?> actual = appRepo.GetApplication([1]);
+            List<JobApplication> actual = appRepo.GetApplication([1]);
             Assert.HasCount(0, actual);
         }
     }
@@ -91,11 +91,18 @@ namespace JobApplicationTracker.Tests
             System.IO.File.Delete(pathToDB);
             Console.WriteLine("Deleted " + pathToDB);
         }
+
+        [TestMethod]
+        public void TestAllNulls()
+        {
+            List<long> actual = appRepo.SearchApplications(null, null, null, null);
+            Assert.AreSequenceEqual([1, 2, 3], actual, "Returned search results did not match expected");
+        }
         
         [TestMethod]
         public void TestRetrievingNonExistantApplication()
         {
-            List<JobApplication?> actual = appRepo.GetApplication([4]);
+            List<JobApplication> actual = appRepo.GetApplication([4]);
             Assert.HasCount(0, actual);
         }
 
