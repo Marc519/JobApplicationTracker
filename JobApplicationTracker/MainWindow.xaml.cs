@@ -55,5 +55,48 @@ namespace JobApplicationTracker
             PageNumberDisplay.DataContext = previewDisplay.PageNumber;
             ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
         }
+
+        private void ApplicationPreviewPanel_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                var application = (JobApplication) e.AddedItems[0]!;
+                ApplicationPanel.DataContext = application;
+            }
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && sender is TextBox tb)
+            {
+                previewDisplay.NewJobIDs(repository.SearchApplications(tb.Text, null, null, null));
+                PageNumberDisplay.DataContext = previewDisplay.PageNumber;
+                ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
+            }
+        }
+
+        private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            FilterPopup.IsOpen = !FilterPopup.IsOpen;
+        }
+
+        private void ApplyFilters_Click(object sender, RoutedEventArgs e)
+        {
+            DateOnly? startDate = null;
+            DateOnly? endDate = null;
+            Status? jobStatus = StatusFilter.SelectedIndex == 0 ? null : (Status)StatusFilter.SelectedIndex - 1;
+            if (StartDateFilter.SelectedDate != null)
+            {
+                startDate = DateOnly.FromDateTime((DateTime)StartDateFilter.SelectedDate);
+            }
+            if (EndDateFilter.SelectedDate != null)
+            {
+                endDate = DateOnly.FromDateTime((DateTime)EndDateFilter.SelectedDate);
+            }
+
+            previewDisplay.NewJobIDs(repository.SearchApplications(SearchBox.Text, jobStatus, startDate, endDate));
+            PageNumberDisplay.DataContext = previewDisplay.PageNumber;
+            ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
+        }
     }
 }

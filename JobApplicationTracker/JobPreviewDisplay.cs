@@ -3,25 +3,39 @@
 namespace JobApplicationTracker;
 public class JobPreviewDisplay
 {
-	public List<JobApplication> JobsOnDisplay = null;
+	public List<JobApplication> JobsOnDisplay = null!;
 	public int PageNumber = 1;
 	public int MaxPages;
-	private List<long> jobIDs = null;
-	private int jobsToDisplay = 1;
-	private ApplicationRepository appRepo = null;
+	public List<long> JobIDs = null!;
+	private int jobsToDisplay = 10;
+	private ApplicationRepository appRepo = null!;
 
 	public JobPreviewDisplay(ApplicationRepository appRepo)
 	{
 		this.appRepo = appRepo;
-		jobIDs = appRepo.SearchApplications(null, null, null, null);
-		JobsOnDisplay = appRepo.GetApplication(jobIDs[0..Math.Min(jobsToDisplay, jobIDs.Count)]);
+		JobIDs = appRepo.SearchApplications(null, null, null, null);
+		JobsOnDisplay = appRepo.GetApplication(JobIDs[0..Math.Min(jobsToDisplay, JobIDs.Count)]);
 
 		int remainder;
-		(MaxPages, remainder) = Math.DivRem(jobIDs.Count, jobsToDisplay);
+		(MaxPages, remainder) = Math.DivRem(JobIDs.Count, jobsToDisplay);
 		if (remainder > 0)
 		{
 			MaxPages++;
 		}
+	}
+
+	public void NewJobIDs(List<long> jobIDs)
+	{
+		JobIDs = jobIDs;
+
+		int remainder;
+		(MaxPages, remainder) = Math.DivRem(JobIDs.Count, jobsToDisplay);
+		if (remainder > 0)
+		{
+			MaxPages++;
+		}
+
+		ToPage(1);
 	}
 
 	public void PrevPage()
@@ -30,8 +44,8 @@ public class JobPreviewDisplay
 		{
 			PageNumber--;
 			int startIndex = (PageNumber - 1) * jobsToDisplay;
-			int endIndex = Math.Min(startIndex + jobsToDisplay, jobIDs.Count);
-			JobsOnDisplay = appRepo.GetApplication(jobIDs[startIndex..endIndex]);
+			int endIndex = Math.Min(startIndex + jobsToDisplay, JobIDs.Count);
+			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex]);
 		}
 	}
 
@@ -41,8 +55,11 @@ public class JobPreviewDisplay
 		{
 			PageNumber = page;
 			int startIndex = (PageNumber - 1) * jobsToDisplay;
-			int endIndex = Math.Min(startIndex + jobsToDisplay, jobIDs.Count);
-			JobsOnDisplay = appRepo.GetApplication(jobIDs[startIndex..endIndex]);
+			int endIndex = Math.Min(startIndex + jobsToDisplay, JobIDs.Count);
+			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex]);
+		} else if (MaxPages == 0)
+		{
+			JobsOnDisplay = new List<JobApplication>();
 		}
 	}
 
@@ -52,8 +69,8 @@ public class JobPreviewDisplay
 		{
 			PageNumber++;
 			int startIndex = (PageNumber - 1) * jobsToDisplay;
-			int endIndex = Math.Min(startIndex + jobsToDisplay, jobIDs.Count);
-			JobsOnDisplay = appRepo.GetApplication(jobIDs[startIndex..endIndex]);
+			int endIndex = Math.Min(startIndex + jobsToDisplay, JobIDs.Count);
+			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex]);
 		}
 	}
 

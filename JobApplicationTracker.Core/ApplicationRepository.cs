@@ -136,7 +136,7 @@ public class ApplicationRepository
 			string jobTitle = reader.GetString(1);
 			string? companyName = reader.IsDBNull(2) ? null : reader.GetString(2);
 			string? jobLink = reader.IsDBNull(3) ? null : reader.GetString(3);
-			string? searchableText = reader.IsDBNull(4) ? null : reader.GetString(4);
+			string? searchableText = reader.IsDBNull(4) ? null : reader.GetString(4); //TODO no need to return this in current scope
 			string? extraNotes = reader.IsDBNull(5) ? null : reader.GetString(5);
 			Status jobStatus = (Status) reader.GetInt32(6);
 			DateOnly applicationDate = DateOnly.FromDateTime(reader.GetDateTime(7));

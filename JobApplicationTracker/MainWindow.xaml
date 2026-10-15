@@ -1,4 +1,5 @@
 ﻿<Window x:Class="JobApplicationTracker.MainWindow"
+        x:Name="MainWindowElement"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -13,8 +14,8 @@
             </Grid.ColumnDefinitions>
             
             <!--Main info window-->
-            <ScrollViewer x:Name="ApplicationPanel" Grid.Column="1" VerticalScrollBarVisibility="Auto">
-                <Grid Grid.Column="1" Margin="20,20,20,9">
+            <ScrollViewer  Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="ApplicationPanel" Grid.Column="1" Margin="20,20,20,9">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -27,20 +28,20 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Here is the job title" Grid.Column="0" FontSize="34"/>
-                        <TextBlock Text="Here is the date of application" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
+                        <TextBlock Text="{Binding JobTitle}" Grid.Column="0" FontSize="34"/>
+                        <TextBlock Text="{Binding ApplicationDate}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
                     </Grid>
-                    <TextBlock Text="Here is the company name" Grid.Row="1" FontSize="22" Margin="0,10,0,10"/>
-                    <TextBlock Text="Here is the job link" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
+                    <TextBlock Text="{Binding CompanyName}" Grid.Row="1" FontSize="22" Margin="0,10,0,10"/>
+                    <TextBlock Text="{Binding JobLink}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
                     <Grid Grid.Row="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Here is the status of the application" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
+                        <TextBlock Text="{Binding JobStatus}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
                     </Grid>
 
-                    <TextBlock TextWrapping ="Wrap" Text="Extra notes: lorem ipsum dolor sit amet consectetur adipiscing elit quibusdam corrupti corrupti ipsum laboris optio quo aut fugiat voluptas illum sunt accusamus dolorum labore fuga in laborum velit provident quibusdam sunt adipiscing blanditiis imperdiet ut pariatur dignissimos voluptas id aliquip elit libero et voluptate ullamco occaecat in eiusmod eiusmod nisi dolorem officia repellendus placeat dignissimos fugiat odio eos similique magna aliqua irure fugiat vero ut elit optio eum nulla aut ipsum voluptas aut assumenda et deserunt similique pariatur fugiat deserunt tempor officia cupiditate eu ut cum est dignissimos expedita illum occaecat proident voluptas mollit exercitation labore dolorum fuga culpa fugiat nisi excepturi est dolorem minim culpa anim esse id possimus assumenda aliquip aliqua in mollit sint sint dolor quo quos maxime officia dolor quos est do incididunt deserunt ducimus placeat incididunt ut id nulla ullamco sunt do nam aute autem cumque in aliqua excepteur deserunt voluptatum aut at elit temporibus dolorem dignissimos qui ad eum temporibus est voluptatum minim harum sit possimus est quis voluptas eu voluptate voluptas deleniti blanditiis dolorum occaecat vel consequatur animi provident est pariatur qui velit sed aut qui maxime culpa magna aliqua similique officia esse ex expedita est temporibus illum occaecat non et autem blanditiis vel dolorem dolor occaecat irure qui fugiat dignissimos possimus do tempore in officia animi fugiat quo facere ut id omnis qui occaecat irure cum esse aut quo cupidatat id rerum excepteur et autem cupidatat ex consequatur molestias cillum iusto dolor exercitation ut qui in distinctio adipiscing ullamco veniam illum dignissimos id dolor eu ut nostrud lorem in et mollit sint sint est fugiat expedita eum duis quos voluptas est et esse ullamco distinctio optio et aliquip dolor deleniti temporibus quod quas placeat ut officia quo id est quibusdam anim irure et dolore dolorem nisi maxime qui nihil sunt lorem aliquip facere mollit et eligendi quo dolores facilis at eiusmod expedita officia maxime in pariatur qui aliqua corrupti laboris id omnis quibusdam reprehenderit tempor excepteur et sunt velit est ut at in sit autem exercitation laboris elit ducimus incididunt ipsum proident excepteur elit distinctio in lorem possimus id quos non sint sunt cum dolore nulla non minus" Grid.Row="3" FontSize="22"/>
+                    <TextBlock TextWrapping ="Wrap" Text="{Binding ExtraNotes}" Grid.Row="3" FontSize="22"/>
                 </Grid>
             </ScrollViewer>
             
@@ -52,10 +53,55 @@
                     <RowDefinition Height="40"/>
                 </Grid.RowDefinitions> 
                 <!--Search window-->
-                <TextBox Background="{x:Null}" Text="Search..." VerticalContentAlignment="Center" BorderThickness="0,0,0,1" BorderBrush="#FFABADB3" Margin="10,0,10,0">
-                </TextBox>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE71E;" FontSize="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderBrush="#FFABADB3"  Background="{x:Null}"/>
+                    <TextBox x:Name="SearchBox" Grid.Column="1" Background="{x:Null}" VerticalContentAlignment="Center" BorderThickness="0,0,0,1" BorderBrush="#FFABADB3" KeyDown="TextBox_KeyDown"/>
+                    
+                    <!--Filter button-->
+                    <Button x:Name="FilterButton" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" BorderBrush="#FFABADB3" Click="Filter_Click">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE71C;" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <Popup x:Name="FilterPopup" StaysOpen="False" IsOpen="False" PlacementTarget="{Binding ElementName=MainWindowElement}" Placement="Center">
+                        <Border BorderThickness="1" BorderBrush="#FFABADB3" Background="White">
+                            <Grid Margin="20">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Grid.Row="0"> Date Filter: </TextBlock>
+                                <DatePicker x:Name="StartDateFilter" Grid.Column="1" Grid.Row="0"/>
+                                <TextBlock Grid.Column="2" Grid.Row="0" Text=" to "/>
+                                <DatePicker x:Name="EndDateFilter" Grid.Column="3" Grid.Row="0"/>
+
+                                <TextBlock Grid.Column="0" Grid.Row="1" Margin="10"> Status Filter: </TextBlock>
+                                <ComboBox x:Name="StatusFilter" Grid.Column="1" Grid.Row="1" Margin="10" SelectedIndex="0">
+                                    <ComboBoxItem Content="No Filter"/>
+                                    <ComboBoxItem Content="Rejected"/>
+                                    <ComboBoxItem Content="Applied"/>
+                                    <ComboBoxItem Content="Interview"/>
+                                    <ComboBoxItem Content="Offer"/>
+                                </ComboBox>
+                                <Button x:Name="ApplyFilters" Grid.Column="3" Grid.Row="1" Content="Apply" Margin="10" Click="ApplyFilters_Click"/>
+                            </Grid>
+                        </Border>
+                    </Popup>
+
+                </Grid>
                 <!--Job application search results-->
-                <ListView x:Name="ApplicationPreviewPanel" Grid.Row="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding}" Background="{x:Null}" >
+                <ListView x:Name="ApplicationPreviewPanel" Grid.Row="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding}" Background="{x:Null}" SelectionChanged="ApplicationPreviewPanel_SelectionChanged" SelectionMode="Single" >
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Border BorderBrush="#FF717171" Margin="0,0,0,0" BorderThickness="0,0,0,1">
