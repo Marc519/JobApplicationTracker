@@ -34,11 +34,11 @@ namespace JobApplicationTracker
                     + "To fix, please delete the current file or move elsewhere.", "Warning", MessageBoxButton.OK);
             }
             repository.CreateTable();
-
             previewDisplay = new JobPreviewDisplay(repository);
 
             ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
             PageNumberDisplay.DataContext = previewDisplay.PageNumber;
+            MaxPageNumber.DataContext = previewDisplay.MaxPages;
             ApplicationPanel.DataContext = null;
         }
 
@@ -67,11 +67,9 @@ namespace JobApplicationTracker
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && sender is TextBox tb)
+            if (e.Key == Key.Enter)
             {
-                previewDisplay.NewJobIDs(repository.SearchApplications(tb.Text, null, null, null));
-                PageNumberDisplay.DataContext = previewDisplay.PageNumber;
-                ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
+                ApplyFilters_Click(sender, e);
             }
         }
 
@@ -93,10 +91,67 @@ namespace JobApplicationTracker
             {
                 endDate = DateOnly.FromDateTime((DateTime)EndDateFilter.SelectedDate);
             }
+            bool isAscending = IsAscending.IsChecked == true;
 
-            previewDisplay.NewJobIDs(repository.SearchApplications(SearchBox.Text, jobStatus, startDate, endDate));
+            previewDisplay.IsAscending = isAscending;
+            previewDisplay.NewJobIDs(repository.SearchApplications(SearchBox.Text, jobStatus, startDate, endDate, isAscending));
             PageNumberDisplay.DataContext = previewDisplay.PageNumber;
+            MaxPageNumber.DataContext = previewDisplay.MaxPages;
             ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
+        }
+
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button delButton && delButton.DataContext is JobApplication job)
+            {
+                MessageBoxResult result = MessageBox.Show("Do you want to delete your " + job.JobTitle + " application at "
+                    + job.CompanyName + "?", "Confirm deletion", MessageBoxButton.YesNo);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    bool successful = repository.RemoveApplication(job.JobID);
+                    ApplyFilters_Click(sender, e);
+
+                    MessageBox.Show("Deletion " + (successful ? "successful" : "unsuccessful"));
+                }
+            } 
+        }
+
+        private void AddApplication_Click(object sender, RoutedEventArgs e)
+        {
+            AddApplicationPopup.IsOpen = !AddApplicationPopup.IsOpen;
+        }
+
+        private async void SubmitApplication_Click(object sender, RoutedEventArgs e)
+        {
+            if (NewJobDate.SelectedDate != null && NewJobStatus.SelectedIndex != -1)
+            {
+                string newJobTitle = NewJobTitle.Text;
+                string newCompanyName = NewCompanyName.Text;
+                string newJobLink = NewJobLink.Text;
+                Status newJobStatus = (Status)NewJobStatus.SelectedIndex;
+                DateOnly newJobDate = DateOnly.FromDateTime((DateTime)NewJobDate.SelectedDate);
+
+                string? searchableText = await JobPostingService.getSearchableText(newJobLink);
+                if (searchableText == null && newJobLink != "")
+                {
+                    MessageBox.Show("Could not retrieve HTML data from job link");
+                }
+
+                repository.AddApplication(newJobTitle, newCompanyName, newJobLink, searchableText, "", newJobStatus, newJobDate);
+
+                NewJobTitle.Text = "";
+                NewCompanyName.Text = "";
+                NewJobLink.Text = "";
+                NewJobStatus.SelectedIndex = -1;
+                NewJobDate.SelectedDate = null;
+
+            } else
+            {
+                MessageBox.Show("Must supply a value for job status and job application date");
+            }
+
+            ApplyFilters_Click(sender, e);
         }
     }
 }

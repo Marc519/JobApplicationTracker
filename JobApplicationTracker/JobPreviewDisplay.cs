@@ -7,14 +7,15 @@ public class JobPreviewDisplay
 	public int PageNumber = 1;
 	public int MaxPages;
 	public List<long> JobIDs = null!;
+	public bool IsAscending { get; set; } = false;
 	private int jobsToDisplay = 10;
 	private ApplicationRepository appRepo = null!;
 
 	public JobPreviewDisplay(ApplicationRepository appRepo)
 	{
 		this.appRepo = appRepo;
-		JobIDs = appRepo.SearchApplications(null, null, null, null);
-		JobsOnDisplay = appRepo.GetApplication(JobIDs[0..Math.Min(jobsToDisplay, JobIDs.Count)]);
+		JobIDs = appRepo.SearchApplications(null, null, null, null, IsAscending);
+		JobsOnDisplay = appRepo.GetApplication(JobIDs[0..Math.Min(jobsToDisplay, JobIDs.Count)], IsAscending);
 
 		int remainder;
 		(MaxPages, remainder) = Math.DivRem(JobIDs.Count, jobsToDisplay);
@@ -34,7 +35,6 @@ public class JobPreviewDisplay
 		{
 			MaxPages++;
 		}
-
 		ToPage(1);
 	}
 
@@ -45,7 +45,7 @@ public class JobPreviewDisplay
 			PageNumber--;
 			int startIndex = (PageNumber - 1) * jobsToDisplay;
 			int endIndex = Math.Min(startIndex + jobsToDisplay, JobIDs.Count);
-			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex]);
+			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex], IsAscending);
 		}
 	}
 
@@ -56,7 +56,7 @@ public class JobPreviewDisplay
 			PageNumber = page;
 			int startIndex = (PageNumber - 1) * jobsToDisplay;
 			int endIndex = Math.Min(startIndex + jobsToDisplay, JobIDs.Count);
-			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex]);
+			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex], IsAscending);
 		} else if (MaxPages == 0)
 		{
 			JobsOnDisplay = new List<JobApplication>();
@@ -70,7 +70,7 @@ public class JobPreviewDisplay
 			PageNumber++;
 			int startIndex = (PageNumber - 1) * jobsToDisplay;
 			int endIndex = Math.Min(startIndex + jobsToDisplay, JobIDs.Count);
-			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex]);
+			JobsOnDisplay = appRepo.GetApplication(JobIDs[startIndex..endIndex], IsAscending);
 		}
 	}
 

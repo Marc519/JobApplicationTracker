@@ -102,9 +102,9 @@ public class ApplicationRepository
 	
 	// takes in applicationIDs and returns them in a list
 	// returns applications in ascending order by id
-	public List<JobApplication> GetApplication(List<long> appIDs)
+	public List<JobApplication> GetApplication(List<long> appIDs, bool asc = true)
 	{
-		string sqlTemplate = "SELECT * FROM applications WHERE job_id IN (";
+		string sqlTemplate = "SELECT job_id, job_title, company_name, job_link, extra_notes, job_status, date FROM applications WHERE job_id IN (";
 
 		var idAsStrings = new List<string> ();
 
@@ -113,7 +113,7 @@ public class ApplicationRepository
 			idAsStrings.Add("@id" + i.ToString());
 		}
 
-		string sql = sqlTemplate + string.Join(", ", idAsStrings) + ")" + "ORDER BY job_id";
+		string sql = sqlTemplate + string.Join(", ", idAsStrings) + ")" + " ORDER BY date" + (asc ? " ASC " : " DESC ");
 
 		using var connection = new SqliteConnection(dataSource);
 		connection.Open();
@@ -136,19 +136,18 @@ public class ApplicationRepository
 			string jobTitle = reader.GetString(1);
 			string? companyName = reader.IsDBNull(2) ? null : reader.GetString(2);
 			string? jobLink = reader.IsDBNull(3) ? null : reader.GetString(3);
-			string? searchableText = reader.IsDBNull(4) ? null : reader.GetString(4); //TODO no need to return this in current scope
-			string? extraNotes = reader.IsDBNull(5) ? null : reader.GetString(5);
-			Status jobStatus = (Status) reader.GetInt32(6);
-			DateOnly applicationDate = DateOnly.FromDateTime(reader.GetDateTime(7));
+			string? extraNotes = reader.IsDBNull(4) ? null : reader.GetString(4);
+			Status jobStatus = (Status) reader.GetInt32(5);
+			DateOnly applicationDate = DateOnly.FromDateTime(reader.GetDateTime(6));
 
-			var newApp = new JobApplication(jobId, jobTitle, companyName, jobLink, searchableText, extraNotes, jobStatus, applicationDate);
+			var newApp = new JobApplication(jobId, jobTitle, companyName, jobLink, null, extraNotes, jobStatus, applicationDate);
 			retList.Add(newApp);
 		}
 
 		return retList;
 	}
 	
-	public List<long> SearchApplications(string? keyword, Status? jobStatus, DateOnly? startDate, DateOnly? endDate)
+	public List<long> SearchApplications(string? keyword, Status? jobStatus, DateOnly? startDate, DateOnly? endDate, bool asc = true)
 	{
 		string sql = @"SELECT job_id
 					   FROM applications";
@@ -186,7 +185,7 @@ public class ApplicationRepository
 			sql = sql + " WHERE " + extra;
             sql = sql.Substring(0, sql.Length - 4); 
 		}
-        sql = sql + " ORDER BY job_id ASC ";
+        sql = sql + " ORDER BY date" + (asc? " ASC " : " DESC ");
 
 		using var connection = new SqliteConnection(dataSource);
 		connection.Open();

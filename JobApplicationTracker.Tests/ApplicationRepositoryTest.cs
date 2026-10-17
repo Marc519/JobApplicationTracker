@@ -34,7 +34,7 @@ namespace JobApplicationTracker.Tests
                 Status.Applied, new DateOnly(2026, 6, 12));
 
             JobApplication expected = new JobApplication(1, "product tester", "NuCaloric", "www.Google.com",
-                "double drinkable cheeseburger", "add quadruple drinkable cheeseburger",
+                null, "add quadruple drinkable cheeseburger",
                 Status.Applied, new DateOnly(2026, 6, 12));
 
             Assert.IsTrue(retVal);
@@ -104,6 +104,13 @@ namespace JobApplicationTracker.Tests
         {
             List<JobApplication> actual = appRepo.GetApplication([4]);
             Assert.HasCount(0, actual);
+        }
+
+        [TestMethod]
+        public void TestSortDesc()
+        {
+            List<long> actual = appRepo.SearchApplications(null, null, null, null, false);
+            Assert.AreSequenceEqual([3,2,1], actual, "Returned search results did not match expected");
         }
 
         [TestMethod]

@@ -31,16 +31,15 @@
                         <TextBlock Text="{Binding JobTitle}" Grid.Column="0" FontSize="34"/>
                         <TextBlock Text="{Binding ApplicationDate}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
                     </Grid>
-                    <TextBlock Text="{Binding CompanyName}" Grid.Row="1" FontSize="22" Margin="0,10,0,10"/>
-                    <TextBlock Text="{Binding JobLink}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
-                    <Grid Grid.Row="2">
+                    <Grid Grid.Row="1" Margin="0, 10, 0, 10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding JobStatus}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
+                        <TextBlock Text="{Binding CompanyName}" Grid.Column="0" FontSize="22"/>
+                        <TextBlock Text="{Binding JobStatus}" Grid.Column="1" FontSize="22" HorizontalAlignment="Right"/>
                     </Grid>
-
+                    <TextBlock Text="{Binding JobLink}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
                     <TextBlock TextWrapping ="Wrap" Text="{Binding ExtraNotes}" Grid.Row="3" FontSize="22"/>
                 </Grid>
             </ScrollViewer>
@@ -58,19 +57,65 @@
                         <ColumnDefinition Width="30"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="50"/>
                     </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE71E;" FontSize="16" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderBrush="#FFABADB3"  Background="{x:Null}"/>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE71E;" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center" Background="{x:Null}"/>
                     <TextBox x:Name="SearchBox" Grid.Column="1" Background="{x:Null}" VerticalContentAlignment="Center" BorderThickness="0,0,0,1" BorderBrush="#FFABADB3" KeyDown="TextBox_KeyDown"/>
                     
                     <!--Filter button-->
                     <Button x:Name="FilterButton" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" BorderBrush="#FFABADB3" Click="Filter_Click">
                         <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE71C;" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
+                    <!--Add job button-->
+                    <Button x:Name="AddApplicationButton" Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" BorderBrush="#FFABADB3" Click="AddApplication_Click">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE710;" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
 
+                    <!--Add job popup window-->
+                    <Popup x:Name="AddApplicationPopup" StaysOpen="False" IsOpen="False" PlacementTarget="{Binding ElementName=MainWindowElement}" Placement="Center">
+                        <Border BorderThickness="1" BorderBrush="#FFABADB3" Background="White">
+                            <Grid Margin="20">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Job Title: " Grid.Column="0" Grid.Row="0"/>
+                                <TextBlock Text="Company Name: " Grid.Column="0" Grid.Row="1"/>
+                                <TextBlock Text="Job Link: " Grid.Column="0" Grid.Row="2"/>
+                                <TextBlock Text="Application Status (req): " Grid.Column="0" Grid.Row="3"/>
+                                <TextBlock Text="Application Date (req): " Grid.Column="0" Grid.Row="4"/>
+
+                                <TextBox x:Name="NewJobTitle" Grid.Column="1" Grid.Row="0"/>
+                                <TextBox x:Name="NewCompanyName" Grid.Column="1" Grid.Row="1"/>
+                                <TextBox x:Name="NewJobLink" Grid.Column="1" Grid.Row="2"/>
+                                <ComboBox x:Name="NewJobStatus" Grid.Column="1" Grid.Row="3">
+                                    <ComboBoxItem Content="Rejected"/>
+                                    <ComboBoxItem Content="Applied"/>
+                                    <ComboBoxItem Content="Interview"/>
+                                    <ComboBoxItem Content="Offer"/>
+                                </ComboBox>
+                                <DatePicker x:Name="NewJobDate" Grid.Column="1" Grid.Row="4"/>
+
+                                <Button x:Name="SubmitApplication" Grid.Column="1" Grid.Row="5" Content="Apply" Margin="10" Click="SubmitApplication_Click"/>
+                            </Grid>
+                        </Border>
+                    </Popup>
+
+                    <!--Filter popup window-->
                     <Popup x:Name="FilterPopup" StaysOpen="False" IsOpen="False" PlacementTarget="{Binding ElementName=MainWindowElement}" Placement="Center">
                         <Border BorderThickness="1" BorderBrush="#FFABADB3" Background="White">
                             <Grid Margin="20">
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
@@ -79,13 +124,17 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-
+                                
+                                <!--Date filters-->
                                 <TextBlock Grid.Column="0" Grid.Row="0"> Date Filter: </TextBlock>
                                 <DatePicker x:Name="StartDateFilter" Grid.Column="1" Grid.Row="0"/>
                                 <TextBlock Grid.Column="2" Grid.Row="0" Text=" to "/>
                                 <DatePicker x:Name="EndDateFilter" Grid.Column="3" Grid.Row="0"/>
-
+                                <ToggleButton x:Name="IsAscending" Grid.Column="4" Grid.Row="0" Content=" Sort Ascending" Margin="10,0,0,0"/>
+                                
+                                <!--Status filter-->
                                 <TextBlock Grid.Column="0" Grid.Row="1" Margin="10"> Status Filter: </TextBlock>
                                 <ComboBox x:Name="StatusFilter" Grid.Column="1" Grid.Row="1" Margin="10" SelectedIndex="0">
                                     <ComboBoxItem Content="No Filter"/>
@@ -94,11 +143,11 @@
                                     <ComboBoxItem Content="Interview"/>
                                     <ComboBoxItem Content="Offer"/>
                                 </ComboBox>
-                                <Button x:Name="ApplyFilters" Grid.Column="3" Grid.Row="1" Content="Apply" Margin="10" Click="ApplyFilters_Click"/>
+
+                                <Button x:Name="ApplyFilters" Grid.Column="4" Grid.Row="2" Content="Apply" Margin="10" Click="ApplyFilters_Click"/>
                             </Grid>
                         </Border>
                     </Popup>
-
                 </Grid>
                 <!--Job application search results-->
                 <ListView x:Name="ApplicationPreviewPanel" Grid.Row="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding}" Background="{x:Null}" SelectionChanged="ApplicationPreviewPanel_SelectionChanged" SelectionMode="Single" >
@@ -111,9 +160,10 @@
                                         <ColumnDefinition Width="1*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Text="{Binding JobTitle}" Grid.Column="0" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="{Binding JobTitle}" Grid.Column="0"/>
                                     <TextBlock Text="{Binding CompanyName}" Grid.Column="0" VerticalAlignment="Bottom"/>
                                     <TextBlock Text="{Binding ApplicationDate}" Grid.Column="1" HorizontalAlignment="Right"/>
+                                    <Button Click="DeleteButton_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE711;" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -121,7 +171,9 @@
                 </ListView>
                 <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal">
                     <Button x:Name="PrevPage" Content=" Previous " Height="30" Click="PrevPage_Click"/>
-                    <TextBlock x:Name="PageNumberDisplay" Text="{Binding}" Margin="20,0,20,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="PageNumberDisplay" Text="{Binding}" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Text="/" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="MaxPageNumber" Text="{Binding}" Margin="0,0,20,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     <Button x:Name="NextPage" Content=" Next " Height="30" Click="NextPage_Click"/>
                 </StackPanel>
             </Grid>
