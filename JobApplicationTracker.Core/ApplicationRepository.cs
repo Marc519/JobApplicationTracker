@@ -44,10 +44,10 @@ public class ApplicationRepository
 		string sql = @"CREATE TABLE IF NOT EXISTS applications(
 				job_id INTEGER PRIMARY KEY,
 				job_title TEXT NOT NULL,
-				company_name TEXT,
-				job_link TEXT,
-				searchable_text TEXT,
-				extra_notes TEXT,
+				company_name TEXT NOT NULL,
+				job_link TEXT NOT NULL,
+				searchable_text TEXT NOT NULL,
+				extra_notes TEXT NOT NULL,
 				job_status INT8 NOT NULL,
 				date DATE NOT NULL)";
 
@@ -58,8 +58,44 @@ public class ApplicationRepository
         command.ExecuteNonQuery();
 	}
 
+	public bool UpdateApplication(long jobId, string? jobTitle, string? companyName, string? jobLink,
+		string? searchableText, string? extraNotes, Status? jobStatus, DateOnly? applicationDate)
+	{
+		List<string> buildQuery = [];
+
+		if (jobTitle != null) buildQuery.Add("job_title = @job_title");
+		if (companyName != null) buildQuery.Add("company_name = @company_name");
+		if (jobLink != null) buildQuery.Add("job_link = @job_link");
+		if (searchableText != null) buildQuery.Add("searchable_text = @searchable_text");
+		if (extraNotes != null) buildQuery.Add("extra_notes = @extra_notes");
+		if (jobStatus != null) buildQuery.Add("job_status = @job_status");
+		if (applicationDate != null) buildQuery.Add("date = @date");
+
+		string sql = "UPDATE applications SET " + string.Join(", ", buildQuery) + " WHERE job_id = @job_id";
+
+        using var connection = new SqliteConnection(dataSource);
+        connection.Open();
+
+        using var command = new SqliteCommand(sql, connection);
+
+		command.Parameters.Add("@job_id", SqliteType.Integer).Value = jobId;
+		if (jobTitle!= null) command.Parameters.Add("@job_title", SqliteType.Text).Value = jobTitle;
+		if (companyName != null) command.Parameters.Add("@company_name", SqliteType.Text).Value = companyName;
+		if (jobLink != null) command.Parameters.Add("@job_link", SqliteType.Text).Value = jobLink;
+		if (searchableText != null) command.Parameters.Add("@searchable_text", SqliteType.Text).Value = searchableText;
+		if (extraNotes != null) command.Parameters.Add("@extra_notes", SqliteType.Text).Value = extraNotes;
+		if (jobStatus != null) command.Parameters.Add("@job_status", SqliteType.Integer).Value = jobStatus;
+		if (applicationDate != null) command.Parameters.Add("@date", SqliteType.Text).Value = ((DateOnly)applicationDate).ToString("yyyy-MM-dd");
+
+		int output = command.ExecuteNonQuery();
+
+		return output == 1;
+	}
+
+
 	// returns true if application added successfuly
-	public bool AddApplication(string jobTitle, string? companyName, string? jobLink, string? searchableText, string? extraNotes, Status jobStatus, DateOnly applicationDate)
+	public bool AddApplication(string jobTitle, string companyName, string jobLink, string searchableText,
+		string extraNotes, Status jobStatus, DateOnly applicationDate)
 	{
 		string sql = @"INSERT INTO applications
 					VALUES (@job_id, @job_title, @company_name, @job_link, @searchable_text, @extra_notes, @job_status, @date)";
@@ -71,10 +107,10 @@ public class ApplicationRepository
         
 		command.Parameters.Add("@job_id", SqliteType.Integer).Value = DBNull.Value;
 		command.Parameters.Add("@job_title", SqliteType.Text).Value = jobTitle;
-		command.Parameters.Add("@company_name", SqliteType.Text).Value = companyName == null ? DBNull.Value : companyName;
-		command.Parameters.Add("@job_link", SqliteType.Text).Value = jobLink == null ? DBNull.Value : jobLink;
-		command.Parameters.Add("@searchable_text", SqliteType.Text).Value = searchableText == null ? DBNull.Value : searchableText;
-		command.Parameters.Add("@extra_notes", SqliteType.Text).Value = extraNotes == null ? DBNull.Value : extraNotes;
+		command.Parameters.Add("@company_name", SqliteType.Text).Value = companyName;
+		command.Parameters.Add("@job_link", SqliteType.Text).Value = jobLink;
+		command.Parameters.Add("@searchable_text", SqliteType.Text).Value = searchableText;
+		command.Parameters.Add("@extra_notes", SqliteType.Text).Value = extraNotes;
 		command.Parameters.Add("@job_status", SqliteType.Integer).Value = jobStatus;
 		command.Parameters.Add("@date", SqliteType.Text).Value = applicationDate.ToString("yyyy-MM-dd");
 
@@ -134,13 +170,13 @@ public class ApplicationRepository
 		{
 			long jobId = reader.GetInt64(0);
 			string jobTitle = reader.GetString(1);
-			string? companyName = reader.IsDBNull(2) ? null : reader.GetString(2);
-			string? jobLink = reader.IsDBNull(3) ? null : reader.GetString(3);
-			string? extraNotes = reader.IsDBNull(4) ? null : reader.GetString(4);
+			string companyName = reader.GetString(2);
+			string jobLink = reader.GetString(3);
+			string extraNotes = reader.GetString(4);
 			Status jobStatus = (Status) reader.GetInt32(5);
 			DateOnly applicationDate = DateOnly.FromDateTime(reader.GetDateTime(6));
 
-			var newApp = new JobApplication(jobId, jobTitle, companyName, jobLink, null, extraNotes, jobStatus, applicationDate);
+			var newApp = new JobApplication(jobId, jobTitle, companyName, jobLink, "", extraNotes, jobStatus, applicationDate);
 			retList.Add(newApp);
 		}
 

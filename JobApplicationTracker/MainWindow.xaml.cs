@@ -124,18 +124,25 @@ namespace JobApplicationTracker
 
         private async void SubmitApplication_Click(object sender, RoutedEventArgs e)
         {
-            if (NewJobDate.SelectedDate != null && NewJobStatus.SelectedIndex != -1)
+            if (NewJobTitle.Text != "" && NewJobDate.SelectedDate != null && NewJobStatus.SelectedIndex != -1)
             {
                 string newJobTitle = NewJobTitle.Text;
                 string newCompanyName = NewCompanyName.Text;
                 string newJobLink = NewJobLink.Text;
+                string searchableText = "";
                 Status newJobStatus = (Status)NewJobStatus.SelectedIndex;
                 DateOnly newJobDate = DateOnly.FromDateTime((DateTime)NewJobDate.SelectedDate);
 
-                string? searchableText = await JobPostingService.getSearchableText(newJobLink);
-                if (searchableText == null && newJobLink != "")
+                if (newJobLink != "")
                 {
-                    MessageBox.Show("Could not retrieve HTML data from job link");
+                    string? retrievedText = await JobPostingService.getSearchableText(newJobLink);
+                    if (retrievedText == null)
+                    {
+                        MessageBox.Show("Could not retrieve HTML data from job link");
+                    } else
+                    {
+                        searchableText = retrievedText;
+                    }
                 }
 
                 repository.AddApplication(newJobTitle, newCompanyName, newJobLink, searchableText, "", newJobStatus, newJobDate);
@@ -145,13 +152,34 @@ namespace JobApplicationTracker
                 NewJobLink.Text = "";
                 NewJobStatus.SelectedIndex = -1;
                 NewJobDate.SelectedDate = null;
-
             } else
             {
-                MessageBox.Show("Must supply a value for job status and job application date");
+                MessageBox.Show("Must supply a value for job title, job status and job application date");
             }
 
             ApplyFilters_Click(sender, e);
+        }
+
+        private async void UpdateApplicationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ApplicationPanel.DataContext is JobApplication app)
+            {
+                if (app.JobLink != "")
+                {
+                    //TODO: dont download web data if link hasnt changed
+                    string? searchableText= await JobPostingService.getSearchableText(app.JobLink);
+                    if (searchableText == null)
+                    {
+                        MessageBox.Show("Could not retrieve HTML data from job link");
+                        app.SearchableText = "";
+                    } else
+                    {
+                        app.SearchableText = searchableText;
+                    }
+                }
+                repository.UpdateApplication(app.JobID, app.JobTitle, app.CompanyName, app.JobLink, app.SearchableText, app.ExtraNotes, app.JobStatus, app.ApplicationDate);
+                ApplyFilters_Click(sender, e);
+            }
         }
     }
 }

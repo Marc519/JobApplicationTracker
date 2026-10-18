@@ -27,6 +27,26 @@ namespace JobApplicationTracker.Tests
         }
 
         [TestMethod]
+        public void TestUpdatingApplication()
+        {
+            appRepo.AddApplication("product tester", "NuCaloric", "www.Google.com",
+                "double drinkable cheeseburger", "add quadruple drinkable cheeseburger",
+                Status.Applied, new DateOnly(2026, 6, 12));
+
+            bool retVal = appRepo.UpdateApplication(1, "mercenary", "Traxus", "www.duckduckgo.com",
+                "they operate beyond scale", "bingus?", Status.Rejected, new DateOnly(2025, 6, 12));
+
+            JobApplication expected = new JobApplication(1, "mercenary", "Traxus", "www.duckduckgo.com",
+                "", "bingus?", Status.Rejected, new DateOnly(2025, 6, 12));
+
+            Assert.IsTrue(retVal);
+
+            List<JobApplication> actual = appRepo.GetApplication([1]);
+
+            Assert.IsTrue(JobApplication.AreEqual(actual[0], expected));
+        }
+
+        [TestMethod]
         public void TestAddingAndGettingApplication()
         {
             bool retVal = appRepo.AddApplication("product tester", "NuCaloric", "www.Google.com",
@@ -34,7 +54,7 @@ namespace JobApplicationTracker.Tests
                 Status.Applied, new DateOnly(2026, 6, 12));
 
             JobApplication expected = new JobApplication(1, "product tester", "NuCaloric", "www.Google.com",
-                null, "add quadruple drinkable cheeseburger",
+                "", "add quadruple drinkable cheeseburger",
                 Status.Applied, new DateOnly(2026, 6, 12));
 
             Assert.IsTrue(retVal);
@@ -255,7 +275,7 @@ namespace JobApplicationTracker.Tests
             var expectedNames = new List<string> { "job_id", "job_title", "company_name", "job_link",
                 "searchable_text", "extra_notes", "job_status", "date" };
             var expectedTypes = new List<string> { "INTEGER", "TEXT", "TEXT", "TEXT", "TEXT", "TEXT", "INT8", "DATE"};
-            var expectedNotNull = new List<int> { 0, 1, 0, 0, 0, 0, 1, 1 };
+            var expectedNotNull = new List<int> { 0, 1, 1, 1, 1, 1, 1, 1 };
 
             int index = 0;
             while (reader.Read() && index < expectedNames.Count)

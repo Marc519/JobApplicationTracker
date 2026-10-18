@@ -10,16 +10,47 @@ public enum Status
 	Offer = 3
 }
 
-public class JobApplication(long jobID, string jobTitle, string? companyName, string? jobLink, string? searchableText, string? extraNotes, Status jobStatus, DateOnly applicationDate)
+public class JobApplication(long jobID, string jobTitle, string companyName, string jobLink, string searchableText, string extraNotes, Status jobStatus, DateOnly applicationDate)
 {
 	public long JobID { get; set; } = jobID;
 	public string JobTitle { get; set; } = jobTitle;
-	public string? CompanyName { get; set; } = companyName;
-	public string? JobLink { get; set; } = jobLink;
-	public string? SearchableText { get; set; } = searchableText;
-	public string? ExtraNotes { get; set; } = extraNotes;
+	public string CompanyName { get; set; } = companyName;
+	public string JobLink { get; set; } = jobLink;
+	public string SearchableText { get; set; } = searchableText;
+	public string ExtraNotes { get; set; } = extraNotes;
 	public Status JobStatus { get; set; } = jobStatus;
-	public DateOnly ApplicationDate { get; set; } = applicationDate;
+    public DateOnly ApplicationDate { get; set; } = applicationDate;
+
+	//TODO find a way to data bind with gui cleanly without this
+    public int JobStatusAsInt
+    {
+        get
+        {
+            return (int)JobStatus;
+        }
+        set
+		{
+			JobStatus = (Status)value;
+		}
+    }
+	public DateTime ApplicationDateAsDateTime
+	{
+		get
+		{
+			return ApplicationDate.ToDateTime(TimeOnly.MinValue);
+		}
+		set
+		{
+			ApplicationDate = DateOnly.FromDateTime(value);
+		}
+	}
+
+	override public string ToString()
+	{
+		return "(" + JobID.ToString() + ", " + JobTitle + ", " + CompanyName + ", " + JobLink + ", " + SearchableText
+			+ ", " + ExtraNotes + ", " + JobStatus.ToString() + ", " + ApplicationDate.ToString() + ")";
+
+	}
 
 	public static bool AreEqual(JobApplication? jobA, JobApplication? jobB)
 	{
