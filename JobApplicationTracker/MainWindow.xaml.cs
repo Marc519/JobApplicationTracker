@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Web.WebView2.WinForms;
+using Microsoft.Web.WebView2.Wpf;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,9 +14,6 @@ using System.Windows.Shapes;
 
 namespace JobApplicationTracker
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private JobPreviewDisplay previewDisplay;
@@ -42,9 +41,35 @@ namespace JobApplicationTracker
             ApplicationPanel.DataContext = null;
         }
 
+        private void TextBox_PreviewLMB(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                tb.SelectAll();
+            }
+        }
         private void NextPage_Click(object sender, RoutedEventArgs e)
         {
             previewDisplay.NextPage();
+            PageNumberDisplay.DataContext = previewDisplay.PageNumber;
+            ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
+        }
+
+        private void SwitchPage_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                SwitchPage_LostFocus(sender, e);
+            }
+        }
+
+        private void SwitchPage_LostFocus(object sender, RoutedEventArgs e)
+        {
+            string inputString = PageNumberDisplay.Text;
+            if (int.TryParse(inputString, out int result))
+            {
+                previewDisplay.ToPage(result);
+            }
             PageNumberDisplay.DataContext = previewDisplay.PageNumber;
             ApplicationPreviewPanel.DataContext = previewDisplay.JobsOnDisplay;
         }
@@ -58,9 +83,11 @@ namespace JobApplicationTracker
 
         private void ApplicationPreviewPanel_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (e.AddedItems.Count > 0)
+            if (e.AddedItems.Count > 0 && e.AddedItems[0] is JobApplication jobApplication)
             {
-                var application = (JobApplication) e.AddedItems[0]!;
+                MainInfoOverlay.Opacity = 1;
+                MainInfoOverlay.IsHitTestVisible = true;
+                var application = new JobApplicationCompatibilityLayer(jobApplication);
                 ApplicationPanel.DataContext = application;
             }
         }
@@ -113,6 +140,17 @@ namespace JobApplicationTracker
                     ApplyFilters_Click(sender, e);
 
                     MessageBox.Show("Deletion " + (successful ? "successful" : "unsuccessful"));
+
+                    if (successful)
+                    {
+                        // if the deleted job is being displayed in the right hand window, hide it
+                        if (ApplicationPanel.DataContext is JobApplicationCompatibilityLayer displayedJob
+                            && displayedJob.JobApp.JobID == job.JobID)
+                        {
+                            MainInfoOverlay.Opacity = 0;
+                            IsHitTestVisible = true;
+                        }
+                    }
                 }
             } 
         }
@@ -162,23 +200,72 @@ namespace JobApplicationTracker
 
         private async void UpdateApplicationButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ApplicationPanel.DataContext is JobApplication app)
+            if (ApplicationPanel.DataContext is JobApplicationCompatibilityLayer appCL)
             {
-                if (app.JobLink != "")
+                JobApplication app = appCL.JobApp;
+                string oldJobLink = app.JobLink;
+                string? newSearchableText = null;
+                if (JobLinkBox.Text != oldJobLink && JobLinkBox.Text != "")
                 {
-                    //TODO: dont download web data if link hasnt changed
-                    string? searchableText= await JobPostingService.getSearchableText(app.JobLink);
+                    string? searchableText = await JobPostingService.getSearchableText(JobLinkBox.Text);
                     if (searchableText == null)
                     {
-                        MessageBox.Show("Could not retrieve HTML data from job link");
-                        app.SearchableText = "";
+                        MessageBox.Show("Could not retrieve HTML data from new job link: ", app.JobLink);
+                        BindingOperations.GetBindingExpression(JobLinkBox, TextBox.TextProperty).UpdateTarget();
                     } else
                     {
-                        app.SearchableText = searchableText;
+                        newSearchableText = searchableText;
                     }
+                } else if (JobLinkBox.Text == "")
+                {
+                    newSearchableText = "";
                 }
-                repository.UpdateApplication(app.JobID, app.JobTitle, app.CompanyName, app.JobLink, app.SearchableText, app.ExtraNotes, app.JobStatus, app.ApplicationDate);
+                repository.UpdateApplication(app.JobID, app.JobTitle, app.CompanyName, JobLinkBox.Text, newSearchableText, app.ExtraNotes, app.JobStatus, app.ApplicationDate);
+                
+                app.JobLink = JobLinkBox.Text;
+                BindingOperations.GetBindingExpression(WebBrowserWindow, Microsoft.Web.WebView2.Wpf.WebView2.SourceProperty).UpdateTarget();
                 ApplyFilters_Click(sender, e);
+            }
+        }
+    }
+    public class JobApplicationCompatibilityLayer(JobApplication app)
+    {
+        public JobApplication JobApp { get; } = app;
+
+        public string EmptyProtectedLink
+        {
+            get
+            {
+                if (JobApp.JobLink == "")
+                {
+                    return "about:blank";
+                } else
+                {
+                    return JobApp.JobLink;
+                }
+            }
+        }
+
+        public int JobStatusAsInt
+        {
+            get
+            {
+                return (int)JobApp.JobStatus;
+            }
+            set
+            {
+                JobApp.JobStatus = (Status)value;
+            }
+        }
+        public DateTime ApplicationDateAsDateTime
+        {
+            get
+            {
+                return JobApp.ApplicationDate.ToDateTime(TimeOnly.MinValue);
+            }
+            set
+            {
+                JobApp.ApplicationDate = DateOnly.FromDateTime(value);
             }
         }
     }

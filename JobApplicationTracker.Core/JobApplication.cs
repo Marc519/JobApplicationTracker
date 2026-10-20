@@ -21,30 +21,6 @@ public class JobApplication(long jobID, string jobTitle, string companyName, str
 	public Status JobStatus { get; set; } = jobStatus;
     public DateOnly ApplicationDate { get; set; } = applicationDate;
 
-	//TODO find a way to data bind with gui cleanly without this
-    public int JobStatusAsInt
-    {
-        get
-        {
-            return (int)JobStatus;
-        }
-        set
-		{
-			JobStatus = (Status)value;
-		}
-    }
-	public DateTime ApplicationDateAsDateTime
-	{
-		get
-		{
-			return ApplicationDate.ToDateTime(TimeOnly.MinValue);
-		}
-		set
-		{
-			ApplicationDate = DateOnly.FromDateTime(value);
-		}
-	}
-
 	override public string ToString()
 	{
 		return "(" + JobID.ToString() + ", " + JobTitle + ", " + CompanyName + ", " + JobLink + ", " + SearchableText

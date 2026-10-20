@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JobApplicationTracker"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         Title="MainWindow" Height="786" Width="1503">
         <Grid>
@@ -14,43 +15,49 @@
             </Grid.ColumnDefinitions>
             
             <!--Main info window-->
-            <ScrollViewer  Grid.Column="1" VerticalScrollBarVisibility="Auto">
-                <Grid x:Name="ApplicationPanel" Grid.Column="1" Margin="20,20,20,9">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding JobTitle, Mode=TwoWay}" Grid.Column="0" FontSize="34"/>
-                    <DatePicker SelectedDate="{Binding ApplicationDateAsDateTime, Mode=TwoWay}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <Grid Grid.Row="1" Margin="0, 10, 0, 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
-                    <TextBox Text="{Binding CompanyName, Mode=TwoWay}" Grid.Column="0" FontSize="22"/>
-                    <ComboBox SelectedIndex="{Binding JobStatusAsInt, Mode=TwoWay}" Grid.Column="1" FontSize="22" HorizontalAlignment="Right">
-                        <ComboBoxItem Content="Rejected"/>
-                        <ComboBoxItem Content="Applied"/>
-                        <ComboBoxItem Content="Interview"/>
-                        <ComboBoxItem Content="Offer"/>
-                    </ComboBox>
-                    </Grid>
-                <TextBox Text="{Binding JobLink, Mode=TwoWay}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
-                <TextBox TextWrapping ="Wrap" Text="{Binding ExtraNotes, Mode=TwoWay}" Grid.Row="3" FontSize="22" AcceptsReturn="True"/>
+            <Border x:Name="MainInfoOverlay" IsHitTestVisible="False" Background="White" Opacity="0" Grid.Column="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid x:Name="ApplicationPanel" Grid.Column="1" Margin="20,20,20,9">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="400"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding JobApp.JobTitle, Mode=TwoWay}" Grid.Column="0" FontSize="34"/>
+                        <DatePicker SelectedDate="{Binding ApplicationDateAsDateTime, Mode=TwoWay}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="0, 10, 0, 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding JobApp.CompanyName, Mode=TwoWay}" Grid.Column="0" FontSize="22"/>
+                        <ComboBox SelectedIndex="{Binding JobStatusAsInt, Mode=TwoWay}" Grid.Column="1" FontSize="22" HorizontalAlignment="Right">
+                            <ComboBoxItem Content="Rejected"/>
+                            <ComboBoxItem Content="Applied"/>
+                            <ComboBoxItem Content="Interview"/>
+                            <ComboBoxItem Content="Offer"/>
+                        </ComboBox>
+                        </Grid>
+                    <TextBox x:Name="JobLinkBox" Text="{Binding JobApp.JobLink, Mode=OneWay}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
+                    <Border BorderBrush="#FF717171" BorderThickness="2" Margin="20" Grid.Row="3">
+                        <wv2:WebView2 x:Name="WebBrowserWindow" Source="{Binding EmptyProtectedLink, Mode=OneWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Border>
 
-                    <Button x:Name="UpdateApplicationButton" Content="Save" Width="Auto" HorizontalAlignment="Right" Padding="10, 0" Margin="10" Grid.Row="4" Click="UpdateApplicationButton_Click"/>
-                </Grid>
-            </ScrollViewer>
-            
+                    <TextBox TextWrapping ="Wrap" Text="{Binding JobApp.ExtraNotes, Mode=TwoWay}" Grid.Row="4" FontSize="22" AcceptsReturn="True"/>
+
+                        <Button x:Name="UpdateApplicationButton" Content="Save" Width="Auto" HorizontalAlignment="Right" Padding="10, 0" Margin="10" Grid.Row="5" Click="UpdateApplicationButton_Click"/>
+                    </Grid>
+                </ScrollViewer>
+            </Border>    
             <!--Left side preview window-->
             <Grid  Grid.Column="0" Background="#FFD6D6D6">
                 <Grid.RowDefinitions>
@@ -67,7 +74,7 @@
                         <ColumnDefinition Width="50"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE71E;" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center" Background="{x:Null}"/>
-                    <TextBox x:Name="SearchBox" Grid.Column="1" Background="{x:Null}" VerticalContentAlignment="Center" BorderThickness="0,0,0,1" BorderBrush="#FFABADB3" KeyDown="TextBox_KeyDown"/>
+                    <TextBox x:Name="SearchBox" Grid.Column="1" Background="{x:Null}" VerticalContentAlignment="Center" BorderThickness="0,0,0,1" BorderBrush="#FFABADB3" KeyDown="TextBox_KeyDown"  PreviewMouseLeftButtonUp="TextBox_PreviewLMB"/>
                     
                     <!--Filter button-->
                     <Button x:Name="FilterButton" Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" BorderBrush="#FFABADB3" Click="Filter_Click">
@@ -169,7 +176,7 @@
 
                                     <TextBlock Text="{Binding JobTitle}" Grid.Column="0"/>
                                     <TextBlock Text="{Binding CompanyName}" Grid.Column="0" VerticalAlignment="Bottom"/>
-                                    <TextBlock Text="{Binding ApplicationDate}" Grid.Column="1" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="{Binding ApplicationDate, StringFormat={}{0:dd/MM/yyyy}}" Grid.Column="1" HorizontalAlignment="Right"/>
                                     <Button Click="DeleteButton_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE711;" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
                                 </Grid>
                             </Border>
@@ -178,7 +185,7 @@
                 </ListView>
                 <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal">
                     <Button x:Name="PrevPage" Content=" Previous " Height="30" Click="PrevPage_Click"/>
-                    <TextBlock x:Name="PageNumberDisplay" Text="{Binding}" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <TextBox x:Name="PageNumberDisplay" Text="{Binding Mode=OneWay}" KeyDown="SwitchPage_KeyDown"  LostFocus="SwitchPage_LostFocus" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"  PreviewMouseLeftButtonUp="TextBox_PreviewLMB"/>
                     <TextBlock Text="/" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     <TextBlock x:Name="MaxPageNumber" Text="{Binding}" Margin="0,0,20,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     <Button x:Name="NextPage" Content=" Next " Height="30" Click="NextPage_Click"/>

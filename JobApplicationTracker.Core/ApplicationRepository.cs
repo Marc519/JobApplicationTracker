@@ -57,7 +57,8 @@ public class ApplicationRepository
         using var command = new SqliteCommand(sql, connection);
         command.ExecuteNonQuery();
 	}
-
+	
+	// Updates the application associated with jobId. Setting an argument null leaves that field unchanged.
 	public bool UpdateApplication(long jobId, string? jobTitle, string? companyName, string? jobLink,
 		string? searchableText, string? extraNotes, Status? jobStatus, DateOnly? applicationDate)
 	{
@@ -136,8 +137,11 @@ public class ApplicationRepository
 		return output == 1;
 	}
 	
-	// takes in applicationIDs and returns them in a list
-	// returns applications in ascending order by id
+	// takes in applicationIDs and returns them in a list of JobApplications
+	// JobApplication returned has the SearchableText field set to null as
+	// this could easily get large and is more relevant for keyword matching
+	// inside the database.
+	// setting asc to false sorts applications by date descending.
 	public List<JobApplication> GetApplication(List<long> appIDs, bool asc = true)
 	{
 		string sqlTemplate = "SELECT job_id, job_title, company_name, job_link, extra_notes, job_status, date FROM applications WHERE job_id IN (";
@@ -183,6 +187,12 @@ public class ApplicationRepository
 		return retList;
 	}
 	
+	// Returns a list of job IDs that match the search criteria:
+	//      - contains keyword
+	//      - has status jobStatus
+	//      - startDate <= date of application <= endDate
+	// null arguments ignore that aspect of the search criteria
+	// setting asc to false returns the applications in descending order by date
 	public List<long> SearchApplications(string? keyword, Status? jobStatus, DateOnly? startDate, DateOnly? endDate, bool asc = true)
 	{
 		string sql = @"SELECT job_id
