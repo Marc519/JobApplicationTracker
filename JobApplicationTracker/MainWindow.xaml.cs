@@ -78,6 +78,7 @@ namespace JobApplicationTracker
             {
                 MainInfoOverlay.Opacity = 1;
                 MainInfoOverlay.IsHitTestVisible = true;
+                WebBrowserWindow.Visibility = Visibility.Visible;
                 var application = new JobApplicationCompatibilityLayer(jobApplication);
                 ApplicationPanel.DataContext = application;
             }
@@ -138,6 +139,7 @@ namespace JobApplicationTracker
                         if (ApplicationPanel.DataContext is JobApplicationCompatibilityLayer displayedJob
                             && displayedJob.JobApp.JobID == job.JobID)
                         {
+                            WebBrowserWindow.Visibility = Visibility.Collapsed;
                             MainInfoOverlay.Opacity = 0;
                             IsHitTestVisible = true;
                         }
@@ -251,6 +253,16 @@ namespace JobApplicationTracker
                 } else
                 {
                     return JobApp.JobLink;
+                }
+            }
+            set
+            {
+                if (value == "")
+                {
+                    JobApp.JobLink = "about:blank";
+                } else
+                {
+                    JobApp.JobLink = value;
                 }
             }
         }
