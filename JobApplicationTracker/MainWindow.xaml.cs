@@ -1,16 +1,7 @@
-﻿using Microsoft.Web.WebView2.WinForms;
-using Microsoft.Web.WebView2.Wpf;
-using System.Diagnostics;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace JobApplicationTracker
 {
@@ -205,24 +196,42 @@ namespace JobApplicationTracker
                 JobApplication app = appCL.JobApp;
                 string oldJobLink = app.JobLink;
                 string? newSearchableText = null;
-                if (JobLinkBox.Text != oldJobLink && JobLinkBox.Text != "")
+
+                // fetch html text data only if job link has changed
+                // if link is deleted, delete searchable text in storage
+                if (EditJobLink.Text != oldJobLink && EditJobLink.Text != "")
                 {
-                    string? searchableText = await JobPostingService.getSearchableText(JobLinkBox.Text);
+                    string? searchableText = await JobPostingService.getSearchableText(EditJobLink.Text);
                     if (searchableText == null)
                     {
-                        MessageBox.Show("Could not retrieve HTML data from new job link: ", app.JobLink);
-                        BindingOperations.GetBindingExpression(JobLinkBox, TextBox.TextProperty).UpdateTarget();
+                        MessageBox.Show("Could not retrieve HTML data from new job link: ", EditJobLink.Text);
+                        BindingOperations.GetBindingExpression(EditJobLink, TextBox.TextProperty).UpdateTarget();
                     } else
                     {
                         newSearchableText = searchableText;
                     }
-                } else if (JobLinkBox.Text == "")
+                } else if (EditJobLink.Text == "")
                 {
                     newSearchableText = "";
                 }
-                repository.UpdateApplication(app.JobID, app.JobTitle, app.CompanyName, JobLinkBox.Text, newSearchableText, app.ExtraNotes, app.JobStatus, app.ApplicationDate);
+
+                if (EditDate.SelectedDate == null)
+                {
+                    EditDate.SelectedDate = appCL.ApplicationDateAsDateTime;
+                }
+                repository.UpdateApplication(app.JobID, EditJobTitle.Text, EditCompanyName.Text, EditJobLink.Text,
+                    newSearchableText, EditExtraNotes.Text, (Status)EditJobStatus.SelectedIndex, DateOnly.FromDateTime((DateTime)EditDate.SelectedDate));
                 
-                app.JobLink = JobLinkBox.Text;
+                // need to update in-memory application to match the wpf form
+                app.JobLink = EditJobLink.Text;
+                app.JobTitle = EditJobTitle.Text;
+                app.CompanyName = EditCompanyName.Text;
+                app.JobLink = EditJobLink.Text;
+                app.ExtraNotes = EditExtraNotes.Text;
+                appCL.JobStatusAsInt = EditJobStatus.SelectedIndex;
+                appCL.ApplicationDateAsDateTime = (DateTime)EditDate.SelectedDate;
+                
+                // refresh the web browser with the new job link and refresh the search results
                 BindingOperations.GetBindingExpression(WebBrowserWindow, Microsoft.Web.WebView2.Wpf.WebView2.SourceProperty).UpdateTarget();
                 ApplyFilters_Click(sender, e);
             }

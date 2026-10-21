@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text.Encodings.Web;
-
+﻿
 namespace JobApplicationTracker;
 public enum Status
 {

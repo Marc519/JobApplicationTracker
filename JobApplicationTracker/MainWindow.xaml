@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:JobApplicationTracker"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="786" Width="1503">
+        Title="Job Application Tracker" Height="786" Width="1503">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
@@ -31,28 +31,28 @@
                                 <ColumnDefinition Width="1*"/>
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding JobApp.JobTitle, Mode=TwoWay}" Grid.Column="0" FontSize="34"/>
-                        <DatePicker SelectedDate="{Binding ApplicationDateAsDateTime, Mode=TwoWay}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
+                            <TextBox x:Name="EditJobTitle" Text="{Binding JobApp.JobTitle, Mode=OneWay}" Grid.Column="0" FontSize="34"/>
+                        <DatePicker x:Name="EditDate" SelectedDate="{Binding ApplicationDateAsDateTime, Mode=OneWay}" Grid.Column="1" FontSize="20" HorizontalAlignment="Right"/>
                         </Grid>
                         <Grid Grid.Row="1" Margin="0, 10, 0, 10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*"/>
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding JobApp.CompanyName, Mode=TwoWay}" Grid.Column="0" FontSize="22"/>
-                        <ComboBox SelectedIndex="{Binding JobStatusAsInt, Mode=TwoWay}" Grid.Column="1" FontSize="22" HorizontalAlignment="Right">
+                        <TextBox x:Name="EditCompanyName" Text="{Binding JobApp.CompanyName, Mode=OneWay}" Grid.Column="0" FontSize="22"/>
+                        <ComboBox x:Name="EditJobStatus" SelectedIndex="{Binding JobStatusAsInt, Mode=OneWay}" Grid.Column="1" FontSize="22" HorizontalAlignment="Right">
                             <ComboBoxItem Content="Rejected"/>
                             <ComboBoxItem Content="Applied"/>
                             <ComboBoxItem Content="Interview"/>
                             <ComboBoxItem Content="Offer"/>
                         </ComboBox>
                         </Grid>
-                    <TextBox x:Name="JobLinkBox" Text="{Binding JobApp.JobLink, Mode=OneWay}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
+                    <TextBox x:Name="EditJobLink" Text="{Binding JobApp.JobLink, Mode=OneWay}" Grid.Row="2" FontSize="22" Margin="0,10,0,10"/>
                     <Border BorderBrush="#FF717171" BorderThickness="2" Margin="20" Grid.Row="3">
                         <wv2:WebView2 x:Name="WebBrowserWindow" Source="{Binding EmptyProtectedLink, Mode=OneWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     </Border>
 
-                    <TextBox TextWrapping ="Wrap" Text="{Binding JobApp.ExtraNotes, Mode=TwoWay}" Grid.Row="4" FontSize="22" AcceptsReturn="True"/>
+                    <TextBox x:Name="EditExtraNotes" TextWrapping ="Wrap" Text="{Binding JobApp.ExtraNotes, Mode=OneWay}" Grid.Row="4" FontSize="22" AcceptsReturn="True"/>
 
                         <Button x:Name="UpdateApplicationButton" Content="Save" Width="Auto" HorizontalAlignment="Right" Padding="10, 0" Margin="10" Grid.Row="5" Click="UpdateApplicationButton_Click"/>
                     </Grid>
